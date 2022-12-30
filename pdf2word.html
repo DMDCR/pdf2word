@@ -1,0 +1,59 @@
+<!-- Include the pdf.js library -->
+<script src="https://unpkg.com/pdfjs-dist@3.1.81/build/pdf.js"></script>
+
+<!-- Create a file input element -->
+<input type="file" id="fileInput" accept=".pdf">
+
+<!-- Create a button to start the conversion -->
+<button id="convertButton">Convert to WORD</button>
+
+<!-- Create a canvas element to render the PDF page -->
+<canvas id="pdfCanvas"></canvas>
+
+<!-- Include the docx.js library (for saving the Word document) -->
+<script src="https://unpkg.com/docx@5.5.1/build/index.min.js"></script>
+
+<script>
+// this code is on github github.com/dmdcr/pdf2word
+  // Select the file input and convert button elements
+  var fileInput = document.getElementById('fileInput');
+  var convertButton = document.getElementById('convertButton');
+  var pdfCanvas = document.getElementById('pdfCanvas');
+
+  // Add an event listener to the convert button
+  convertButton.addEventListener('click', function() {
+    // Get the file object from the file input element
+    var file = fileInput.files[0];
+
+    // Load the PDF file using pdf.js
+    PDFJS.getDocument(file).then(function(pdf) {
+      // Get the first page of the PDF
+      pdf.getPage(1).then(function(page) {
+        // Set the canvas size to the size of the PDF page
+        var viewport = page.getViewport({ scale: 1 });
+        pdfCanvas.width = viewport.width;
+        pdfCanvas.height = viewport.height;
+
+        // Render the PDF page on the canvas
+        page.render({
+          canvasContext: pdfCanvas.getContext('2d'),
+          viewport: viewport
+        }).then(function() {
+          // Get the image data of the canvas
+          var imageData = pdfCanvas.toDataURL('image/jpeg');
+
+          // Create a new Word document
+          var doc = new Word.Document();
+
+          // Insert the image data into the document as a new page
+          doc.sections.getFirst().getBody().insertImage(imageData, 'end');
+
+          // Save the Word document
+          doc.save().then(function(result) {
+            console.log('Word document created: ' + result.url);
+          });
+        });
+      });
+    });
+  });
+</script>
